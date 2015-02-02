@@ -337,7 +337,7 @@ void Gfx::setVideoMode()
 	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
 	                            SDL_TEXTUREACCESS_STREAMING, windowW, windowH);
 	back = SDL_CreateRGBSurface(0, windowW, windowH, 32, 0, 0, 0, 0);
-	// linear for that old-school chunky look, but consider adding a user 
+	// linear for that old-school chunky look, but consider adding a user
 	// option for this
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	// FIXME: we should use SDL's logical size functionality instead of the
@@ -722,6 +722,7 @@ void Gfx::flip()
 
 	lastUpdateRect = updateRect;
 
+	// FIXME: we should use hardware syncing instead!
 	if(settings->screenSync)
 	{
 		static unsigned int const delay = 14u;

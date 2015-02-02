@@ -12,7 +12,7 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <cstdio>
 #include <memory>
 #include <limits>
@@ -289,9 +289,6 @@ Gfx::Gfx()
 
 void Gfx::init()
 {
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
-	SDL_EnableUNICODE(1);
-	SDL_WM_SetCaption("Liero 1.37", 0);
 	SDL_ShowCursor(SDL_DISABLE);
 	lastFrame = SDL_GetTicks();
 
@@ -309,28 +306,43 @@ void Gfx::init()
 
 void Gfx::setVideoMode()
 {
-	int bitDepth = 32;
-	
-	int flags = SDL_SWSURFACE | SDL_RESIZABLE;
-	if(fullscreen)
+	int flags = SDL_WINDOW_RESIZABLE;
+
+	if (fullscreen)
 	{
-		flags |= SDL_FULLSCREEN;
-		if(settings->fullscreenW > 0 && settings->fullscreenH > 0)
-		{
-			windowW = settings->fullscreenW;
-			windowH = settings->fullscreenH;
-		}
-	}
-	
-	if(!SDL_VideoModeOK(windowW, windowH, bitDepth, flags))
-	{
-		// Default to 640x480
-		windowW = 640;
-		windowH = 480;
+		flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
 	}
 
-	back = SDL_SetVideoMode(windowW, windowH, bitDepth, flags);
-
+	if (window) {
+		SDL_DestroyWindow(window);
+	}
+	window = SDL_CreateWindow("Liero 1.37", SDL_WINDOWPOS_UNDEFINED, 
+	                          SDL_WINDOWPOS_UNDEFINED, windowW, windowH, flags);
+	if (renderer) {
+		SDL_DestroyRenderer(renderer);
+	}
+	// vertical sync is always enabled, because without it Liero will always
+	// run at the maximum speed your computer can manage. On my machine, this
+	// means it will draw so fast you can't even see the results. Of course,
+	// the proper way to fix this is to decouple the drawing from the game
+	// logic, but that's a pretty big undertaking. Any modern (or even old) 
+	// machine should be able to run Liero with vsync without problems.
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+	if (texture) {
+		SDL_DestroyTexture(texture);
+	}
+	texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, 
+	                            SDL_TEXTUREACCESS_STREAMING, windowW, windowH);
+	if (back) {
+		SDL_FreeSurface(back);
+	}
+	back = SDL_CreateRGBSurface(0, windowW, windowH, 32, 0, 0, 0, 0);
+	// linear for that old-school chunky look, but consider adding a user 
+	// option for this
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
+	// FIXME: we should use SDL's logical size functionality instead of the
+	// manual rescaling we do now
+	SDL_RenderSetLogicalSize(renderer, windowW, windowH);
 	doubleRes = (windowW >= 640 && windowH >= 400);
 }
 
@@ -338,11 +350,8 @@ void Gfx::loadMenus()
 {
 	hiddenMenu.addItem(MenuItem(48, 7, "FULLSCREEN (F11)", HiddenMenu::Fullscreen));
 	hiddenMenu.addItem(MenuItem(48, 7, "DOUBLE SIZE", HiddenMenu::DoubleRes));
-	hiddenMenu.addItem(MenuItem(48, 7, "SET FULLSCREEN WIDTH", HiddenMenu::FullscreenW));
-	hiddenMenu.addItem(MenuItem(48, 7, "SET FULLSCREEN HEIGHT", HiddenMenu::FullscreenH));
 	hiddenMenu.addItem(MenuItem(48, 7, "POWERLEVEL PALETTES", HiddenMenu::LoadPowerLevels));
 	hiddenMenu.addItem(MenuItem(48, 7, "SHADOWS", HiddenMenu::Shadows));
-	hiddenMenu.addItem(MenuItem(48, 7, "SCREEN SYNC.", HiddenMenu::ScreenSync));
 	hiddenMenu.addItem(MenuItem(48, 7, "AUTO-RECORD REPLAYS", HiddenMenu::RecordReplays));
 	hiddenMenu.addItem(MenuItem(48, 7, "AI FRAMES", HiddenMenu::AiFrames));
 	hiddenMenu.addItem(MenuItem(48, 7, "AI MUTATIONS", HiddenMenu::AiMutations));
@@ -450,13 +459,13 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 	{
 		case SDL_KEYDOWN:
 		{
-		
-			SDLKey s = ev.key.keysym.sym;
+
+			SDL_Scancode s = ev.key.keysym.scancode;
 
 			if (keyBufPtr < keyBuf + 32)
 				*keyBufPtr++ = ev.key.keysym;
 
-			Uint32 dosScan = SDLToDOSKey(ev.key.keysym);
+			Uint32 dosScan = SDLToDOSKey(ev.key.keysym.scancode);
 			if(dosScan)
 			{
 				dosKeys[dosScan] = true;
@@ -464,17 +473,17 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 					controller->onKey(dosScan, true);
 			}
 
-			if(s == SDLK_F11)
+			if(s == SDL_SCANCODE_F11)
 			{
 				setFullscreen(!fullscreen);
 			}
 		}
 		break;
-		
+
 		case SDL_KEYUP:
 		{
-			SDLKey s = ev.key.keysym.sym;
-			
+			SDL_Scancode s = ev.key.keysym.scancode;
+
 			Uint32 dosScan = SDLToDOSKey(s);
 			if(dosScan)
 			{
@@ -484,35 +493,35 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 			}
 		}
 		break;
-		
-		case SDL_VIDEORESIZE:
+
+		case SDL_WINDOWEVENT_RESIZED:
 		{
-			windowW = ev.resize.w;
-			windowH = ev.resize.h;
+			windowW = ev.window.data1;
+			windowH = ev.window.data2;
 			setVideoMode();
 		}
 		break;
-		
+
 		case SDL_QUIT:
 		{
 			running = false;
 		}
 		break;
-		
+
 		case SDL_JOYAXISMOTION:
 		{
 			Joystick& js = joysticks[ev.jbutton.which];
 			int jbtnBase = 4 + 2 * ev.jaxis.axis;
-			
+
 			bool newBtnStates[2];
 			newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
 			newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
-			
+
 			for(int i = 0; i < 2; ++i)
 			{
 				int jbtn = jbtnBase + i;
 				bool newState = newBtnStates[i];
-				
+
 				if(newState != js.btnState[jbtn])
 				{
 					js.btnState[jbtn] = newState;
@@ -556,11 +565,6 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 				controller->onKey(joyButtonToExKey(ev.jbutton.which, jbtn), js.btnState[jbtn]);
 		}
 		break;
-
-		case SDL_ACTIVEEVENT:
-		{
-		}
-		break;
 	}
 }
 
@@ -574,7 +578,7 @@ void Gfx::process(Controller* controller)
 	}
 }
 
-SDL_keysym Gfx::waitForKey()
+SDL_Keysym Gfx::waitForKey()
 {
 	SDL_Event ev;
 	while(SDL_WaitEvent(&ev))
@@ -585,8 +589,8 @@ SDL_keysym Gfx::waitForKey()
 			return ev.key.keysym;
 		}
 	}
-	
-	return SDL_keysym(); // Dummy
+
+	return SDL_Keysym(); // Dummy
 }
 
 uint32_t Gfx::waitForKeyEx()
@@ -707,32 +711,13 @@ void Gfx::flip()
 			scaleDraw(src, renderResX, renderResY, srcPitch, dest, destPitch, mag, pal32);
 		}
 	}
-	
-	SDL_Flip(back);
-	
-	lastUpdateRect = updateRect;
-	
-	if(settings->screenSync)
-	{
-		static unsigned int const delay = 14u;
-		
-		uint32_t wantedTime = lastFrame + delay;
 
-		while(true)
-		{
-			uint32_t now = SDL_GetTicks();
-			if(now >= wantedTime)
-				break;
-			
-			SDL_Delay(wantedTime - now);
-		}
-		
-		lastFrame = SDL_GetTicks();
-		while((SDL_GetTicks() - lastFrame) > delay)
-			lastFrame += delay;
-	}
-	else
-		SDL_Delay(0);
+	SDL_UpdateTexture(texture, NULL, back->pixels, windowW * 4);
+	SDL_RenderClear(renderer);
+	SDL_RenderCopy(renderer, texture, NULL, NULL);
+	SDL_RenderPresent(renderer);
+
+	lastUpdateRect = updateRect;
 }
 
 void playChangeSound(Common& common, int change)
@@ -749,8 +734,8 @@ void playChangeSound(Common& common, int change)
 
 void resetLeftRight()
 {
-	gfx.releaseSDLKey(SDLK_LEFT);
-	gfx.releaseSDLKey(SDLK_RIGHT);
+	gfx.releaseSDLKey(SDL_SCANCODE_LEFT);
+	gfx.releaseSDLKey(SDL_SCANCODE_RIGHT);
 }
 
 template<typename T>
@@ -1059,9 +1044,9 @@ void Gfx::selectLevel()
 		
 		if (!levSel.process())
 			break;
-		
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			sfx.play(common, 27);
 			
@@ -1118,8 +1103,8 @@ void Gfx::selectProfile(WormSettings& ws)
 		if (!profileSel.process())
 			break;
 
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			auto* sel = profileSel.enter();
 
@@ -1152,27 +1137,27 @@ int Gfx::selectReplay()
 			replaySel.select(joinPath(getConfigNode().fullPath(), "Replays"));
 		}
 	}
-	
+
 	do
 	{
 		screenBmp.copy(frozenScreen);
-		
+
 		string title = "Select replay:";
 		if (!replaySel.currentNode->fullPath.empty())
 		{
 			title += ' ';
 			title += replaySel.currentNode->fullPath;
 		}
-		
+
 		common->font.drawFramedText(screenBmp, title, 178, 20, 50);
 
 		replaySel.draw();
-		
+
 		if (!replaySel.process())
 			break;
-		
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			auto* sel = replaySel.enter();
 
@@ -1230,9 +1215,9 @@ void Gfx::selectOptions()
 		
 		if (!optionsSel.process())
 			break;
-		
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			auto* sel = optionsSel.enter();
 
@@ -1287,9 +1272,9 @@ std::unique_ptr<Common> Gfx::selectTc()
 		
 		if (!tcSel.process())
 			break;
-		
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			auto* sel = tcSel.enter();
 
@@ -1352,38 +1337,38 @@ void Gfx::weaponOptions()
 		common.font.drawText(screenBmp, LS(Availability), 251, 21, 50);
 		
 		weaponMenu.draw(common, false);
-						
-		if(testSDLKeyOnce(SDLK_UP))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_UP))
 		{
 			sfx.play(common, 26);
 			weaponMenu.movement(-1);
 		}
-		
-		if(testSDLKeyOnce(SDLK_DOWN))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_DOWN))
 		{
 			sfx.play(common, 25);
 			weaponMenu.movement(1);
 		}
-		
-		if(testSDLKeyOnce(SDLK_LEFT))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_LEFT))
 		{
 			weaponMenu.onLeftRight(common, -1);
 		}
-		if(testSDLKeyOnce(SDLK_RIGHT))
+		if(testSDLKeyOnce(SDL_SCANCODE_RIGHT))
 		{
 			weaponMenu.onLeftRight(common, 1);
 		}
 		
 		if(settings->extensions)
 		{
-			if(testSDLKeyOnce(SDLK_PAGEUP))
+			if(testSDLKeyOnce(SDL_SCANCODE_PAGEUP))
 			{
 				sfx.play(common, 26);
 				
 				weaponMenu.movementPage(-1);
 			}
-			
-			if(testSDLKeyOnce(SDLK_PAGEDOWN))
+
+			if(testSDLKeyOnce(SDL_SCANCODE_PAGEDOWN))
 			{
 				sfx.play(common, 25);
 				
@@ -1395,8 +1380,8 @@ void Gfx::weaponOptions()
 
 		menuFlip();
 		process();
-		
-		if(testSDLKeyOnce(SDLK_ESCAPE))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_ESCAPE))
 		{
 			int count = 0;
 			
@@ -1467,30 +1452,34 @@ bool Gfx::inputString(std::string& dest, std::size_t maxLen, int x, int y, int (
 		
 		font.drawText(screenBmp, str, x - adjust, y + 1, 50);
 		flip();
-		SDL_keysym key(waitForKey());
-		
-		switch(key.sym)
+		SDL_Keysym key(waitForKey());
+
+		switch(key.scancode)
 		{
-		case SDLK_BACKSPACE:
+		case SDL_SCANCODE_BACKSPACE:
 			if(!buffer.empty())
 			{
 				buffer.erase(buffer.size() - 1);
 			}
 		break;
-		
-		case SDLK_RETURN:
-		case SDLK_KP_ENTER:
+
+		case SDL_SCANCODE_RETURN:
+		case SDL_SCANCODE_KP_ENTER:
 			dest = buffer;
 			sfx.play(*common, 27);
 			clearKeys();
 			return true;
-			
-		case SDLK_ESCAPE:
+
+		case SDL_SCANCODE_ESCAPE:
 			clearKeys();
 			return false;
-			
+
 		default:
-			int k = unicodeToDOS(key.unicode);
+			// this is an ugly way to handle text input, but handling it 
+		    // properly would require some code refactoring, and the font used 
+		    // doesn't support anything beyond US ASCII anyway, so this will
+		    // do for now
+			uint32 k = key.sym;
 			if(k
 			&& buffer.size() < maxLen
 			&& (
@@ -1789,29 +1778,29 @@ int Gfx::menuLoop()
 			settingsMenu.draw(common, true);
 		else
 			curMenu->draw(common, false);
-		
-		if(testSDLKeyOnce(SDLK_ESCAPE))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_ESCAPE))
 		{
 			if(curMenu == &mainMenu)
 				mainMenu.moveToId(MainMenu::MaQuit);
 			else
 				curMenu = &mainMenu;
 		}
-		
-		if(testSDLKeyOnce(SDLK_UP))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_UP))
 		{
 			sfx.play(common, 26);
 			curMenu->movement(-1);
 		}
-		
-		if(testSDLKeyOnce(SDLK_DOWN))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_DOWN))
 		{
 			sfx.play(common, 25);
 			curMenu->movement(1);
 		}
 
-		if(testSDLKeyOnce(SDLK_RETURN)
-		|| testSDLKeyOnce(SDLK_KP_ENTER))
+		if(testSDLKeyOnce(SDL_SCANCODE_RETURN)
+		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			if(curMenu == &mainMenu)
 			{
@@ -1868,43 +1857,43 @@ int Gfx::menuLoop()
 				selected = curMenu->onEnter(common);
 			}
 		}
-		
-		if(testSDLKeyOnce(SDLK_F1))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_F1))
 		{
 			curMenu = &mainMenu;
 			mainMenu.moveToId(startItemId);
 			selected = startItemId;
 		}
-		if(testSDLKeyOnce(SDLK_F2))
+		if(testSDLKeyOnce(SDL_SCANCODE_F2))
 		{
 			mainMenu.moveToId(MainMenu::MaAdvanced);
 			openHiddenMenu();
 		}
-		if(testSDLKeyOnce(SDLK_F3))
+		if(testSDLKeyOnce(SDL_SCANCODE_F3))
 		{
 			curMenu = &mainMenu;
 			mainMenu.moveToId(MainMenu::MaReplays);
 			selected = curMenu->onEnter(common);
 		}
 
-		if (testSDLKeyOnce(SDLK_F5))
+		if (testSDLKeyOnce(SDL_SCANCODE_F5))
 		{
 			mainMenu.moveToId(MainMenu::MaPlayer1Settings);
 			playerSettings(0);
 		}
-		if (testSDLKeyOnce(SDLK_F6))
+		if (testSDLKeyOnce(SDL_SCANCODE_F6))
 		{
 			mainMenu.moveToId(MainMenu::MaPlayer2Settings);
 			playerSettings(1);
 		}
-		if (testSDLKeyOnce(SDLK_F7))
+		if (testSDLKeyOnce(SDL_SCANCODE_F7))
 		{
 			mainMenu.moveToId(MainMenu::MaSettings);
 			curMenu = &settingsMenu; // Go into settings menu
 		}
 
 #if 1
-		if (testSDLKeyOnce(SDLK_F8))
+		if (testSDLKeyOnce(SDL_SCANCODE_F8))
 		{
 			uint32 s = 14;
 			
@@ -2025,25 +2014,25 @@ int Gfx::menuLoop()
 		}
 #endif
 
-		if(testSDLKey(SDLK_LEFT))
+		if(testSDLKey(SDL_SCANCODE_LEFT))
 		{
 			if(!curMenu->onLeftRight(common, -1))
 				resetLeftRight();
 		}
-		if(testSDLKey(SDLK_RIGHT))
+		if(testSDLKey(SDL_SCANCODE_RIGHT))
 		{
 			if(!curMenu->onLeftRight(common, 1))
 				resetLeftRight();
 		}
-		
-		if(testSDLKeyOnce(SDLK_PAGEUP))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_PAGEUP))
 		{
 			sfx.play(common, 26);
 				
 			curMenu->movementPage(-1);
 		}
-			
-		if(testSDLKeyOnce(SDLK_PAGEDOWN))
+
+		if(testSDLKeyOnce(SDL_SCANCODE_PAGEDOWN))
 		{
 			sfx.play(common, 25);
 				

@@ -24,7 +24,7 @@ How to build (Windows)
 
 Building on Windows
 -----------------------
-* Install Visual Studio 2015
+* Install Visual Studio 2019. You will need the "Game development with C++" workload
 * Install needed packages (SDL2) via nuget
 * Copy everything from the pkg directory to the _build directory
 

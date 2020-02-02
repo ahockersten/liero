@@ -27,11 +27,16 @@ Building on Windows
 * Install Visual Studio 2019. You will need the "Game development with C++" workload
 * Install needed packages (SDL2) via nuget
 * Copy everything from the pkg directory to the _build directory
+* Clone GGPO into the root folder: git clone https://github.com/pond3r/ggpo
+* Build GGPO according to its instructions:
+* $ cd ggpo
+* $ ./configure_windows.cmd
+* Open build/ggpo.sln and build build(s) for x86/x64 debug/release as appropriate
 
 (Optional) Dependencies for building the video tool
 -----------------------
 * Follow the instructions for installing dependencies needed to build ffmpeg. At the time of writing, the MSYS2 route worked best for me https://trac.ffmpeg.org/wiki/CompilationGuide/MinGW
-* Download latest libx264: git clone git://git.videolan.org/x264.git
+* Download latest libx264 into the root folder: git clone git://git.videolan.org/x264.git
 * Build it: cd x264; ./configure --enable-shared --enable-pic && make -j8
 * Download latest ffmpeg: git clone git://source.ffmpeg.org/ffmpeg.git ffmpeg
 * Build it: cd ffmpeg; ./configure --enable-shared --enable-pic --enable-gpl --enable-libx264 --disable-programs --extra-ldflags=-L../x264 --extra-cflags=-I../x264 && make -j8

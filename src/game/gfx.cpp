@@ -273,6 +273,7 @@ struct WeaponEnumBehavior : EnumBehavior
 Gfx::Gfx()
 : mainMenu(53, 20)
 , settingsMenu(178, 20)
+, onlineMenu(178, 20)
 , playerMenu(178, 20)
 , hiddenMenu(178, 20)
 , curMenu(0)
@@ -541,8 +542,12 @@ void Gfx::loadMenus()
 	settingsMenu.addItem(MenuItem(48, 7, "SAVE SETUP AS...", SettingsMenu::SaveOptions));
 	settingsMenu.addItem(MenuItem(48, 7, "LOAD SETUP", SettingsMenu::LoadOptions));
 
+	onlineMenu.addItem(MenuItem(48, 7, "HOST", OnlineMenu::OnHost));
+	onlineMenu.addItem(MenuItem(48, 7, "JOIN", OnlineMenu::OnHost));
+
 	mainMenu.addItem(MenuItem(10, 10, "", MainMenu::MaResumeGame)); // string set in menuLoop
 	mainMenu.addItem(MenuItem(10, 10, "", MainMenu::MaNewGame)); // string set in menuLoop
+	mainMenu.addItem(MenuItem(10, 10, "ONLINE", MainMenu::MaOnline));
 	mainMenu.addItem(MenuItem(48, 48, "OPTIONS (F2)", MainMenu::MaAdvanced));
 	mainMenu.addItem(MenuItem(48, 48, "REPLAYS (F3)", MainMenu::MaReplays));
 	mainMenu.addItem(MenuItem(48, 48, "TC", MainMenu::MaTc));
@@ -553,6 +558,7 @@ void Gfx::loadMenus()
 	mainMenu.addItem(MenuItem(48, 48, "MATCH SETUP (F7)", MainMenu::MaSettings));
 
 	settingsMenu.valueOffsetX = 100;
+	onlineMenu.valueOffsetX = 100;
 	playerMenu.valueOffsetX = 95;
 	hiddenMenu.valueOffsetX = 120;
 }
@@ -2105,6 +2111,11 @@ int Gfx::menuLoop()
 					case MainMenu::MaSettings:
 					{
 						curMenu = &settingsMenu; // Go into settings menu
+						break;
+					}
+					case MainMenu::MaOnline:
+					{
+						curMenu = &onlineMenu; // Go into online menu
 						break;
 					}
 

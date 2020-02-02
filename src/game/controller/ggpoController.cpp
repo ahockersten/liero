@@ -38,20 +38,6 @@ GGPOController::GGPOController(gvl::shared_ptr<Common> common, gvl::shared_ptr<S
 	worm2->index = 1;
 	worm2->statsX = 218;
 	//worm2->ai = createAi(worm2->settings->controller, *worm2, *settings);
-
-#if 0
-	for(int i = 0; i < 10; ++i)
-	{
-		Worm* worm2 = new Worm(*this);
-		worm2->settings = settings->wormSettings[1];
-		worm2->health = worm2->settings->health;
-		worm2->index = 1;
-		if(worm2->settings->controller == 1)
-			worm2->ai.reset(new DumbLieroAI(*worm2));
-			
-		addWorm(worm2);
-	}
-#endif
 	
 	game.addViewport(new Viewport(gvl::rect(0, 0, 158, 158), worm1->index, 504, 350));
 	game.addViewport(new Viewport(gvl::rect(160, 0, 158+160, 158), worm2->index, 504, 350));

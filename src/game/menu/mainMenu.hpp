@@ -12,6 +12,7 @@ struct MainMenu : Menu
 	{
 		MaResumeGame,
 		MaNewGame,
+		MaOnline,
 		MaSettings,
 		MaPlayer1Settings,
 		MaPlayer2Settings,

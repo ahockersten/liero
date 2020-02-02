@@ -105,6 +105,18 @@ struct SettingsMenu : Menu
 	virtual void onUpdate();
 };
 
+struct OnlineMenu : Menu {
+	enum {
+		OnHost,
+		OnJoin
+	};
+
+	OnlineMenu(int x, int y)
+	: Menu(x, y)
+	{
+	}
+};
+
 struct Joystick {
 	SDL_Joystick *sdlJoystick;
 	bool btnState[MaxJoyButtons];
@@ -248,6 +260,8 @@ struct Gfx
 
 	MainMenu mainMenu;
 	SettingsMenu settingsMenu;
+	OnlineMenu onlineMenu;
+
 	PlayerMenu playerMenu;
 	HiddenMenu hiddenMenu;
 	

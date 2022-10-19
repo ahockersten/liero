@@ -64,7 +64,7 @@ std::string toUpperCase(std::string str)
 	{
 		str[i] = std::toupper(static_cast<unsigned char>(str[i])); // TODO: Uppercase conversion that works for the DOS charset
 	}
-	return std::move(str);
+	return str;
 }
 
 std::string toLowerCase(std::string str)
@@ -73,7 +73,7 @@ std::string toLowerCase(std::string str)
 	{
 		str[i] = std::tolower(static_cast<unsigned char>(str[i])); // TODO: Lowercase conversion that works for the DOS charset
 	}
-	return std::move(str);
+	return str;
 }
 
 FILE* tolerantFOpen(std::string const& name, char const* mode)
@@ -280,12 +280,12 @@ bool create_directories(std::string const& dir)
 
 #else
 
+static char const dirSep = '/';
+
 inline char isDirSep(char c)
 {
-	return c == '/';
+	return c == dirSep;
 }
-
-static char const dirSep = '/';
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -440,7 +440,7 @@ struct FsNodeJoin : FsNodeImp
 	{
 		auto s = a->tryToSource();
 		if (s)
-			return std::move(s);
+			return s;
 		return b->tryToSource();
 	}
 
@@ -448,7 +448,7 @@ struct FsNodeJoin : FsNodeImp
 	{
 		auto s = a->tryToSink();
 		if (s)
-			return std::move(s);
+			return s;
 		return b->tryToSink();
 	}
 };
@@ -456,9 +456,9 @@ struct FsNodeJoin : FsNodeImp
 gvl::shared_ptr<FsNodeImp> join(gvl::shared_ptr<FsNodeImp> a, gvl::shared_ptr<FsNodeImp> b)
 {
 	if (!b)
-		return std::move(a);
+		return a;
 	if (!a)
-		return std::move(b);
+		return b;
 	return gvl::shared_ptr<FsNodeImp>(new FsNodeJoin(std::move(a), std::move(b)));
 }
 
@@ -579,7 +579,7 @@ struct FsNodeZipFile : FsNodeImp
 			gvl::make_shared(gvl::bucket_data_mem::create_from((uint8_t const*)ptr, (uint8_t const*)ptr + size, size))));
 		free(ptr);
 	
-		return std::move(s);
+		return s;
 	}
 
 	gvl::sink tryToSink()
@@ -611,7 +611,7 @@ struct FsNodeFilesystem : FsNodeImp
 	{
 		std::string fullPath(joinPath(path, name));
 
-		bool dir = false;
+		//bool dir = false;
 
 		gvl::shared_ptr<FsNodeImp> imp;
 
@@ -636,7 +636,7 @@ struct FsNodeFilesystem : FsNodeImp
 			imp = join(std::move(imp), gvl::shared_ptr<FsNodeImp>(new FsNodeZipFile(fullPath, true)));
 		}
 
-		return std::move(imp);
+		return imp;
 	}
 
 	bool exists() const

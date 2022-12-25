@@ -699,20 +699,34 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 			Joystick& js = joysticks[ev.jaxis.which];
 			int jbtnBase = 4 + 2 * ev.jaxis.axis;
 
-			bool newBtnStates[2];
-			newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
-			newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
-
-			for(int i = 0; i < 2; ++i)
+			if (ev.jaxis.axis == 2 || ev.jaxis.axis == 3)
 			{
-				int jbtn = jbtnBase + i;
-				bool newState = newBtnStates[i];
-
-				if(newState != js.btnState[jbtn])
+				if ((ev.jaxis.value > 0 && ev.jaxis.value < JoyAxisThreshold) || (ev.jaxis.value < 0 && ev.jaxis.value > -JoyAxisThreshold))
 				{
-					js.btnState[jbtn] = newState;
-					if (controller)
-						controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
+					break;
+				}
+				if (controller)
+				{
+					controller->onAxisAim(ev.jbutton.which, js);
+				}
+			}
+			else
+			{
+				bool newBtnStates[2];
+				newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
+				newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
+
+				for(int i = 0; i < 2; ++i)
+				{
+					int jbtn = jbtnBase + i;
+					bool newState = newBtnStates[i];
+
+					if(newState != js.btnState[jbtn])
+					{
+						js.btnState[jbtn] = newState;
+						if (controller)
+								controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
+					}
 				}
 			}
 		}
@@ -2347,5 +2361,3 @@ int Gfx::menuLoop()
 
 	return selected;
 }
-
-

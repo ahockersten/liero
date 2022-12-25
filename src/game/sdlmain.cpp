@@ -7,7 +7,7 @@ int gameEntry(int argc, char *argv[]);
 #if GVL_WINDOWS
 #include <windows.h>
 
-INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow) 
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, INT nCmdShow)
 {
 	try
 	{

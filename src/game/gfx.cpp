@@ -740,23 +740,15 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 				}
 			}
 			if (!wasAxisAim)
-			{
-				bool newBtnStates[2];
-				newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
-				newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
+			{		
+				int jbtn = 4 + 2 * ev.jaxis.axis;
+				bool newState = (ev.jaxis.value > JoyAxisThreshold);
 
-				for(int i = 0; i < 2; ++i)
+				if(newState != js.btnState[jbtn])
 				{
-					int jbtnBase = 4 + 2 * ev.jaxis.axis;
-					int jbtn = jbtnBase + i;
-					bool newState = newBtnStates[i];
-
-					if(newState != js.btnState[jbtn])
-					{
-						js.btnState[jbtn] = newState;
-						if (controller)
-								controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
-					}
+					js.btnState[jbtn] = newState;
+					if (controller)
+							controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
 				}
 			}
 		}
@@ -865,9 +857,6 @@ uint32_t Gfx::waitForKeyEx()
 		case SDL_JOYAXISMOTION:
 			if(ev.jaxis.value > JoyAxisThreshold)
 				return joyButtonToExKey( ev.jaxis.which, 4 + 2 * ev.jaxis.axis );
-			else if ( ev.jaxis.value < -JoyAxisThreshold )
-				return joyButtonToExKey( ev.jaxis.which, 5 + 2 * ev.jaxis.axis );
-
 			break;
 		case SDL_JOYHATMOTION:
 			if(ev.jhat.value & SDL_HAT_UP)

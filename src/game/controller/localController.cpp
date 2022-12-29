@@ -93,6 +93,8 @@ bool LocalController::onAxis(Joystick &js, uint32_t axis)
 	}
 	int16 upDown = SDL_JoystickGetAxis(js.sdlJoystick, worm->settings->controlsEx[WormSettings::AxisUpDownAxis]);
 	int16 leftRight = SDL_JoystickGetAxis(js.sdlJoystick, worm->settings->controlsEx[WormSettings::AxisLeftRightAxis]);
+	// it's a bit weird to set the worm aiming angle and direction here. A more correct way would be to use setControlStates -
+	// but that's made only for button presses and thus only supports boolean values.
 	if (leftRight == 0)
 	{
 		worm->aimingAngle = itof(0);

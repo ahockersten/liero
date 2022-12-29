@@ -38,6 +38,7 @@ struct Extensions
 	bool singleScreenReplay;
 	bool spectatorWindow;
 	std::string tc;
+	bool dualStickControls;
 };
 
 struct Rand;
@@ -263,6 +264,9 @@ void archive_liero(Archive ar, Settings& settings, Rand& rand)
 
 		gvl::enable_when(ar, fileExtensionVersion >= 10)
 			.str(settings.tc, std::string("openliero"));			
+
+		gvl::enable_when(ar, fileExtensionVersion >= 10)
+			.b(settings.dualStickControls, false);
 	}
 	catch(std::runtime_error&)
 	{
@@ -337,6 +341,8 @@ void archive(Archive ar, Settings& settings)
 		.b(settings.fullscreen, false);
 	gvl::enable_when(ar, fileExtensionVersion >= 10)
 		.str(settings.tc, std::string("openliero"));
+	gvl::enable_when(ar, fileExtensionVersion >= 10)
+		.b(settings.dualStickControls, false);
 	ar.check();
 }
 
@@ -383,6 +389,7 @@ void archive_text(Settings& settings, Archive& ar)
 	ar.b(S(spectatorWindow));
 	ar.b(S(fullscreen));
 	ar.str(S(tc));
+	ar.b(S(dualStickControls));
 
 	#undef S
 

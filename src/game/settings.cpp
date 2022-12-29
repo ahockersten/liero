@@ -33,6 +33,7 @@ Extensions::Extensions()
 , singleScreenReplay(false)
 , spectatorWindow(false)
 , tc(std::string("openliero"))
+, dualStickControls(false)
 {
 }
 

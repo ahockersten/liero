@@ -25,11 +25,6 @@ inline uint32_t joyButtonToExKey( int joyNum, int joyButton ) {
 	return JoyKeysStart + MaxJoyButtons * joyNum + joyButton;
 }
 
-inline uint32_t joyAxisToExKey(int joyNum, int joyAxis) {
-	return JoyAxisStart + MaxJoyAxis * joyNum + joyAxis;
-}
-
-
 inline bool isExtendedKey( uint32_t k ) {
 	return k >= MaxDOSKey;
 }

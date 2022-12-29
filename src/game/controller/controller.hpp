@@ -1,9 +1,12 @@
 #ifndef UUID_9CD8C22BC14D4832AE2A859530FE6339
 #define UUID_9CD8C22BC14D4832AE2A859530FE6339
 
+#include <stdint.h>
+
 struct Level;
 struct Game;
 struct Renderer;
+struct Joystick;
 
 struct Controller
 {
@@ -15,6 +18,10 @@ struct Controller
 	// an actual match
 	virtual bool isReplay() { return false; };
 	
+	// Called when an axis event happens. If this is not handled by the axis aim code, this returns false (implying that it should
+	// be handled like a key)
+	virtual bool onAxis(Joystick& js, uint32_t axis) = 0;
+
 	// Called when a key event is forwarded to the controller
 	virtual void onKey(int key, bool state) = 0;
 	

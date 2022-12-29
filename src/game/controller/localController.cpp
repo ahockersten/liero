@@ -77,6 +77,36 @@ LocalController::~LocalController()
 	endRecord();
 }
 
+inline int normalizedLangle(int langle)
+{
+	if (langle < itof(64)) langle = itof(128) - langle;
+	return langle;
+}
+
+bool LocalController::onAxis(Joystick &js, uint32_t axis)
+{
+	Worm::Control control;
+	Worm* worm = game.findControlAxis(SDL_JoystickInstanceID(js.sdlJoystick), axis, control);
+	if (!worm)
+	{
+		return false;
+	}
+	int16 upDown = SDL_JoystickGetAxis(js.sdlJoystick, worm->settings->controlsEx[WormSettings::AxisUpDownAxis]);
+	int16 leftRight = SDL_JoystickGetAxis(js.sdlJoystick, worm->settings->controlsEx[WormSettings::AxisLeftRightAxis]);
+	// it's a bit weird to set the worm aiming angle and direction here. A more correct way would be to use setControlStates -
+	// but that's made only for button presses and thus only supports boolean values.
+	if (leftRight == 0)
+	{
+		worm->aimingAngle = itof(0);
+		return true;
+	}
+	float rangle = std::atan2(upDown, leftRight);
+	int newAimAngle = (rangle * 64 / 3.141592653589793) + 96;
+	if (newAimAngle > 128) newAimAngle -= 128;
+	worm->direction = newAimAngle > 64 ? 1 : 0;
+	worm->aimingAngle = itof(newAimAngle);
+}
+
 void LocalController::onKey(int key, bool keyState)
 {
 	Worm::Control control;

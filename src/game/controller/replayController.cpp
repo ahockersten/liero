@@ -16,6 +16,11 @@ ReplayController::ReplayController(
 {
 }
 
+bool ReplayController::onAxis(Joystick& js, uint32_t axis)
+{
+	return false;
+}
+
 void ReplayController::onKey(int key, bool keyState)
 {
 	if(key == DkEscape && !goingToMenu)

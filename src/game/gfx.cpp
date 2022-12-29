@@ -41,7 +41,7 @@ struct KeyBehavior : ItemBehavior
 	, extended(extended)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
@@ -59,24 +59,55 @@ struct KeyBehavior : ItemBehavior
 			if(!isEx)
 				key = k;
 			keyEx = k;
-			
+
 			onUpdate(menu, item);
 		}
-		
+
 		gfx.clearKeys();
 		return -1;
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		item.value = gfx.getKeyName(extended ? keyEx : key);
 		item.hasValue = true;
 	}
-	
+
 	Common& common;
 	uint32_t& key;
 	uint32_t& keyEx;
 	bool extended;
+};
+
+struct AxisBehavior : ItemBehavior
+{
+	AxisBehavior(Common& common, uint32_t& joystick, uint32_t& axis)
+		: common(common)
+		, joystick(joystick)
+		, axis(axis)
+	{
+	}
+
+	int onEnter(Menu& menu, MenuItem& item)
+	{
+		sfx.play(common, 27);
+		bool changed = gfx.waitForAxis(joystick, axis);
+		if (changed)
+		{
+			onUpdate(menu, item);
+		}
+		return -1;
+	}
+
+	void onUpdate(Menu& menu, MenuItem& item)
+	{
+		item.value = gfx.getAxisName(joystick, axis);
+		item.hasValue = true;
+	}
+
+	Common& common;
+	uint32_t& joystick;
+	uint32_t& axis;
 };
 
 struct WormNameBehavior : ItemBehavior
@@ -86,21 +117,21 @@ struct WormNameBehavior : ItemBehavior
 	, ws(ws)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
-		
+
 		ws.randomName = false;
 
 		int x, y;
 		if(!menu.itemPosition(item, x, y))
 			return -1;
-			
+
 		x += menu.valueOffsetX + 2;
 
 		gfx.inputString(ws.name, 20, x, y);
-		
+
 		if(ws.name.empty())
 		{
 			Settings::generateName(ws, gfx.rand);
@@ -109,13 +140,13 @@ struct WormNameBehavior : ItemBehavior
 		onUpdate(menu, item);
 		return -1;
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		item.value = ws.name;
 		item.hasValue = true;
 	}
-	
+
 	Common& common;
 	WormSettings& ws;
 };
@@ -129,17 +160,17 @@ struct ProfileSaveBehavior : ItemBehavior
 	, saveAs(saveAs)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
-		
+
 		int x, y;
 		if(!menu.itemPosition(item, x, y))
 			return -1;
-			
+
 		x += menu.valueOffsetX + 2;
-		
+
 		if(saveAs)
 		{
 			std::string name;
@@ -148,16 +179,16 @@ struct ProfileSaveBehavior : ItemBehavior
 				//ws.saveProfile(joinPath(joinPath(configRoot, "Profiles"), name));
 				ws.saveProfile(gfx.getConfigNode() / "Profiles" / (name + ".lpf"));
 			}
-				
+
 			sfx.play(common, 27);
 		}
 		else
 			ws.saveProfile(ws.profileNode);
-		
+
 		menu.updateItems(common);
 		return -1;
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		if(!saveAs)
@@ -165,7 +196,7 @@ struct ProfileSaveBehavior : ItemBehavior
 			item.visible = (bool)ws.profileNode;
 		}
 	}
-	
+
 	Common& common;
 	WormSettings& ws;
 	bool saveAs;
@@ -178,7 +209,7 @@ struct ProfileLoadedBehavior : ItemBehavior
 	, ws(ws)
 	{
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		if (ws.profileNode)
@@ -194,13 +225,13 @@ struct ProfileLoadedBehavior : ItemBehavior
 
 		item.hasValue = true;
 	}
-	
+
 	Common& common;
 	WormSettings& ws;
 };
 
 #define MIN3(a, b, c) ((a) < (b) ? ((a) < (c) ? (a) : (c)) : ((b) < (c) ? (b) : (c)))
- 
+
 int levenshtein(char const *s1, char const *s2) {
     std::size_t x, y, s1len, s2len;
     s1len = strlen(s1);
@@ -218,7 +249,7 @@ int levenshtein(char const *s1, char const *s2) {
 			int c = std::tolower(s1[y-1]) == std::tolower(s2[x-1]) ? 0 : 1;
             matrix[x*w + y] = MIN3(matrix[(x-1)*w + y] + 1, matrix[x*w + y - 1] + 1, matrix[(x-1)*w + y - 1] + c);
 		}
- 
+
     return(matrix[s2len*w + s1len]);
 }
 
@@ -228,7 +259,7 @@ struct WeaponEnumBehavior : EnumBehavior
 	: EnumBehavior(common, v, 1, (uint32_t)common.weapons.size(), false)
 	{
 	}
-		
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		item.value = common.weapons[common.weapOrder[v - 1]].name;
@@ -242,7 +273,7 @@ struct WeaponEnumBehavior : EnumBehavior
 		int x, y;
 		if(!menu.itemPosition(item, x, y))
 			return -1;
-			
+
 		x += menu.valueOffsetX + 2;
 
 		std::string search;
@@ -325,7 +356,7 @@ void Gfx::setVideoMode()
 		}
 		if (!sdlSpectatorWindow)
 		{
-			sdlSpectatorWindow = SDL_CreateWindow("Liero Spectator Window", 
+			sdlSpectatorWindow = SDL_CreateWindow("Liero Spectator Window",
 				SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowW, windowH, flags);
 		}
 		else
@@ -449,12 +480,12 @@ void Gfx::onWindowResize(Uint32 windowID)
 			SDL_FreeSurface(sdlDrawSurface);
 			sdlDrawSurface = NULL;
 		}
-		sdlDrawSurface = SDL_CreateRGBSurface(0, doubleRes ? 640 : 320, 
+		sdlDrawSurface = SDL_CreateRGBSurface(0, doubleRes ? 640 : 320,
 		                         doubleRes ? 400 : 200, 32, 0, 0, 0, 0);
-		// linear for that old-school chunky look, but consider adding a user 
+		// linear for that old-school chunky look, but consider adding a user
 		// option for this
 		SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-		SDL_RenderSetLogicalSize(sdlRenderer, doubleRes ? 640 : 320, 
+		SDL_RenderSetLogicalSize(sdlRenderer, doubleRes ? 640 : 320,
 		                         doubleRes ? 400 : 200);
 	}
 	else
@@ -472,11 +503,11 @@ void Gfx::onWindowResize(Uint32 windowID)
 
 		if (settings->spectatorWindow)
 		{
-			sdlSpectatorTexture = SDL_CreateTexture(sdlSpectatorRenderer, 
-			                                        SDL_PIXELFORMAT_ARGB8888, 
-				                           			SDL_TEXTUREACCESS_STREAMING, 
+			sdlSpectatorTexture = SDL_CreateTexture(sdlSpectatorRenderer,
+			                                        SDL_PIXELFORMAT_ARGB8888,
+				                           			SDL_TEXTUREACCESS_STREAMING,
 				                           			640, 400);
-			sdlSpectatorDrawSurface = SDL_CreateRGBSurface(0, 640, 400, 32, 0, 
+			sdlSpectatorDrawSurface = SDL_CreateRGBSurface(0, 640, 400, 32, 0,
 			                                               0, 0, 0);
 			SDL_RenderSetLogicalSize(sdlSpectatorRenderer, 640, 400);
 		}
@@ -499,6 +530,7 @@ void Gfx::loadMenus()
 	hiddenMenu.addItem(MenuItem(48, 7, "SEE SPAWN POINT", HiddenMenu::AllowViewingSpawnPoint));
 	hiddenMenu.addItem(MenuItem(48, 7, "SINGLE SCREEN REPLAY", HiddenMenu::SingleScreenReplay));
 	hiddenMenu.addItem(MenuItem(48, 7, "SPECTATOR WINDOW", HiddenMenu::SpectatorWindow));
+	hiddenMenu.addItem(MenuItem(48, 7, "DUALSTICK CONTROLS", HiddenMenu::DualStickControls));
 
 	playerMenu.addItem(MenuItem(3, 7, "PROFILE LOADED", PlayerMenu::PlLoadedProfile));
 	playerMenu.addItem(MenuItem(3, 7, "SAVE PROFILE", PlayerMenu::PlSaveProfile));
@@ -517,6 +549,8 @@ void Gfx::loadMenus()
 	playerMenu.addItem(MenuItem(48, 7, "CHANGE", PlayerMenu::PlChange));
 	playerMenu.addItem(MenuItem(48, 7, "JUMP", PlayerMenu::PlJump));
 	playerMenu.addItem(MenuItem(48, 7, "DIG", PlayerMenu::PlDig));
+	playerMenu.addItem(MenuItem(48, 7, "AIM L/R (AXIS)", PlayerMenu::PlAimLeftRightAxis));
+	playerMenu.addItem(MenuItem(48, 7, "AIM U/D (AXIS)", PlayerMenu::PlAimUpDownAxis));
 
 	for (int i = 0; i < 5; ++i)
 		playerMenu.addItem(MenuItem(48, 7, std::string("WEAPON ") + (char)(i + '1'), PlayerMenu::PlWeap0 + i));
@@ -681,7 +715,7 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 					onWindowResize(ev.window.windowID);
 				}
 				break;
-				
+
 				default:
 				break;
 			}
@@ -697,37 +731,47 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 		case SDL_JOYAXISMOTION:
 		{
 			Joystick& js = joysticks[ev.jaxis.which];
-			int jbtnBase = 4 + 2 * ev.jaxis.axis;
-
-			bool newBtnStates[2];
-			newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
-			newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
-
-			for(int i = 0; i < 2; ++i)
+			bool wasAxisAim = false;
+			if (settings->dualStickControls)
 			{
-				int jbtn = jbtnBase + i;
-				bool newState = newBtnStates[i];
-
-				if(newState != js.btnState[jbtn])
+				if (controller && ((ev.jaxis.value > 0 && ev.jaxis.value > JoyAxisThreshold) || (ev.jaxis.value < 0 && ev.jaxis.value < -JoyAxisThreshold)))
 				{
-					js.btnState[jbtn] = newState;
-					if (controller)
-						controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
+					wasAxisAim = controller->onAxis(js, ev.jaxis.axis);
+				}
+			}
+			if (!wasAxisAim)
+			{
+				bool newBtnStates[2];
+				newBtnStates[0] = (ev.jaxis.value > JoyAxisThreshold);
+				newBtnStates[1] = (ev.jaxis.value < -JoyAxisThreshold);
+
+				for(int i = 0; i < 2; ++i)
+				{
+					int jbtnBase = 4 + 2 * ev.jaxis.axis;
+					int jbtn = jbtnBase + i;
+					bool newState = newBtnStates[i];
+
+					if(newState != js.btnState[jbtn])
+					{
+						js.btnState[jbtn] = newState;
+						if (controller)
+								controller->onKey(joyButtonToExKey(ev.jaxis.which, jbtn), newState);
+					}
 				}
 			}
 		}
 		break;
-		
+
 		case SDL_JOYHATMOTION:
 		{
 			Joystick& js = joysticks[ev.jhat.which];
-			
+
 			bool newBtnStates[4];
 			newBtnStates[0] = (ev.jhat.value & SDL_HAT_UP) != 0;
 			newBtnStates[1] = (ev.jhat.value & SDL_HAT_DOWN) != 0;
 			newBtnStates[2] = (ev.jhat.value & SDL_HAT_LEFT) != 0;
 			newBtnStates[3] = (ev.jhat.value & SDL_HAT_RIGHT) != 0;
-			
+
 			for(int jbtn = 0; jbtn < 4; ++jbtn)
 			{
 				bool newState = newBtnStates[jbtn];
@@ -740,7 +784,7 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 			}
 		}
 		break;
-		
+
 		case SDL_JOYBUTTONDOWN:
 		case SDL_JOYBUTTONUP: /* Fall-through */
 		{
@@ -751,7 +795,7 @@ void Gfx::processEvent(SDL_Event& ev, Controller* controller)
 				controller->onKey(joyButtonToExKey(ev.jbutton.which, jbtn), js.btnState[jbtn]);
 		}
 		break;
-		
+
 		default:
 			break;
 	}
@@ -782,6 +826,31 @@ SDL_Keysym Gfx::waitForKey()
 	return SDL_Keysym(); // Dummy
 }
 
+bool Gfx::waitForAxis(uint32_t& joystick, uint32_t& axis)
+{
+	SDL_Event ev;
+	while (SDL_WaitEvent(&ev))
+	{
+		processEvent(ev);
+		switch (ev.type)
+		{
+		case SDL_KEYDOWN:
+			if (ev.key.keysym.scancode == SDL_Scancode::SDL_SCANCODE_ESCAPE)
+				return false;
+
+		case SDL_JOYAXISMOTION:
+			if (ev.jaxis.value > JoyAxisThreshold || ev.jaxis.value < -JoyAxisThreshold)
+			{
+				joystick = ev.jaxis.which;
+				axis = ev.jaxis.axis;
+				return true;
+			}
+		}
+	}
+
+	return false; // Dummy
+}
+
 uint32_t Gfx::waitForKeyEx()
 {
 	SDL_Event ev;
@@ -792,7 +861,7 @@ uint32_t Gfx::waitForKeyEx()
 		{
 		case SDL_KEYDOWN:
 			return SDLToDOSKey(ev.key.keysym);
-			
+
 		case SDL_JOYAXISMOTION:
 			if(ev.jaxis.value > JoyAxisThreshold)
 				return joyButtonToExKey( ev.jaxis.which, 4 + 2 * ev.jaxis.axis );
@@ -817,7 +886,7 @@ uint32_t Gfx::waitForKeyEx()
 			break;
 		}
 	}
-	
+
 	return 0; // Dummy
 }
 
@@ -834,8 +903,13 @@ std::string Gfx::getKeyName(uint32_t key)
 		key -= joyNum * MaxJoyButtons;
 		return "J" + toString(joyNum) + "_" + toString(key);
 	}
-	
+
 	return "";
+}
+
+std::string Gfx::getAxisName(uint32_t joystick, uint32_t axis)
+{
+	return "J" + toString(joystick) + "_axis_" + toString(axis);
 }
 
 void Gfx::clearKeys()
@@ -847,7 +921,7 @@ void Gfx::preparePalette(SDL_PixelFormat* format, Color realPal[256], uint32_t (
 {
 	for(int i = 0; i < 256; ++i)
 	{
-		pal32[i] = SDL_MapRGB(format, realPal[i].r, realPal[i].g, realPal[i].b);		 
+		pal32[i] = SDL_MapRGB(format, realPal[i].r, realPal[i].g, realPal[i].b);
 	}
 }
 
@@ -878,9 +952,9 @@ void Gfx::draw(SDL_Surface& surface, SDL_Texture& texture, SDL_Renderer& sdlRend
 	int offsetX, offsetY;
 	int mag = fitScreen(surface.w, surface.h,
 						renderer.renderResX, renderer.renderResY, offsetX, offsetY);
-		
+
 	gvl::rect newRect(offsetX, offsetY, renderer.renderResX * mag, renderer.renderResY * mag);
-		
+
 	if(mag != prevMag)
 	{
 		// Clear background if magnification is decreased to
@@ -891,13 +965,13 @@ void Gfx::draw(SDL_Surface& surface, SDL_Texture& texture, SDL_Renderer& sdlRend
 	else
 		updateRect = newRect;
 	prevMag = mag;
-		
+
 	std::size_t destPitch = surface.pitch;
 	std::size_t srcPitch = renderer.bmp.pitch;
-		
+
 	PalIdx* dest = reinterpret_cast<PalIdx*>(surface.pixels) + offsetY * destPitch + offsetX * surface.format->BytesPerPixel;
 	PalIdx* src = renderer.bmp.pixels;
-		
+
 	uint32_t pal32[256];
 	preparePalette(surface.format, realPal, pal32);
 	scaleDraw(src, renderer.renderResX, renderer.renderResY, srcPitch, dest, destPitch, mag, pal32);
@@ -922,7 +996,7 @@ void Gfx::flip()
 	}
 
 	static unsigned int const delay = 14u;
-		
+
 	uint32_t wantedTime = lastFrame + delay;
 
 	while(true)
@@ -930,10 +1004,10 @@ void Gfx::flip()
 		uint32_t now = SDL_GetTicks();
 		if(now >= wantedTime)
 			break;
-		
+
 		SDL_Delay(wantedTime - now);
 	}
-		
+
 	lastFrame = wantedTime;
 }
 
@@ -975,7 +1049,7 @@ struct ProfileLoadBehavior : ItemBehavior
 	, ws(ws)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
@@ -984,7 +1058,7 @@ struct ProfileLoadBehavior : ItemBehavior
 		menu.updateItems(common);
 		return -1;
 	}
-		
+
 	Common& common;
 	WormSettings& ws;
 };
@@ -998,14 +1072,14 @@ struct PlayerSettingsBehavior : ItemBehavior
 	, player(player)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
 		gfx.playerSettings(player);
 		return -1;
 	}
-	
+
 	Common& common;
 	int player;
 };
@@ -1016,7 +1090,7 @@ struct LevelSelectBehavior : ItemBehavior
 	: common(common)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
@@ -1025,7 +1099,7 @@ struct LevelSelectBehavior : ItemBehavior
 		onUpdate(menu, item);
 		return -1;
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		item.hasValue = true;
@@ -1040,7 +1114,7 @@ struct LevelSelectBehavior : ItemBehavior
 			menu.itemFromId(SettingsMenu::SiRegenerateLevel)->string = LS(RegenLevel);
 		}
 	}
-	
+
 	Common& common;
 };
 
@@ -1068,36 +1142,36 @@ struct OptionsSaveBehavior : ItemBehavior
 	: common(common)
 	{
 	}
-	
+
 	int onEnter(Menu& menu, MenuItem& item)
 	{
 		sfx.play(common, 27);
-		
+
 		int x, y;
 		if(!menu.itemPosition(item, x, y))
 			return -1;
-			
+
 		x += menu.valueOffsetX + 2;
-		
+
 		std::string name = getBasename(getLeaf(gfx.settingsNode.fullPath()));
 		if(gfx.inputString(name, 30, x, y) && !name.empty())
 		{
 			//gfx.saveSettings(joinPath(configRoot, name + ".cfg"));
 			gfx.saveSettings(gfx.getConfigNode() / (name + ".cfg"));
 		}
-				
+
 		sfx.play(common, 27);
-		
+
 		onUpdate(menu, item);
 		return -1;
 	}
-	
+
 	void onUpdate(Menu& menu, MenuItem& item)
 	{
 		item.value = getBasename(getLeaf(gfx.settingsNode.fullPath()));
 		item.hasValue = true;
 	}
-	
+
 	Common& common;
 };
 
@@ -1140,7 +1214,7 @@ ItemBehavior* SettingsMenu::getItemBehavior(Common& common, MenuItem& item)
 			ret->allowEntry = false;
 			return ret;
 		}
-		
+
 		case SiLives:
 			return new IntegerBehavior(common, gfx.settings->lives, 1, 999, 1);
 		case SiTimeToLose:
@@ -1150,10 +1224,10 @@ ItemBehavior* SettingsMenu::getItemBehavior(Common& common, MenuItem& item)
 			return new TimeBehavior(common, gfx.settings->zoneTimeout, 10, 3600, 10);
 		case SiFlagsToWin:
 			return new IntegerBehavior(common, gfx.settings->flagsToWin, 1, 999, 1);
-		
+
 		case SiLevel:
 			return new LevelSelectBehavior(common);
-			
+
 		case SiGameMode:
 			return new ArrayEnumBehavior(common, gfx.settings->gameMode, common.texts.gameModes);
 		case SiWeaponOptions:
@@ -1176,14 +1250,14 @@ void SettingsMenu::onUpdate()
 	setVisibility(SiTimeToWin, false);
 	setVisibility(SiZoneTimeout, false);
 	setVisibility(SiFlagsToWin, false);
-	
+
 	switch(gfx.settings->gameMode)
 	{
 		case Settings::GMKillEmAll:
 		case Settings::GMScalesOfJustice:
 			setVisibility(SiLives, true);
 		break;
-		
+
 		case Settings::GMGameOfTag:
 			setVisibility(SiTimeToLose, true);
 		break;
@@ -1222,14 +1296,14 @@ void Gfx::selectLevel()
 	do
 	{
 		playRenderer.bmp.copy(frozenScreen);
-		
+
 		string title = LS(SelLevel);
 		if (!levSel.currentNode->fullPath.empty())
 		{
 			title += ' ';
 			title += levSel.currentNode->fullPath;
 		}
-		
+
 		int wid = common.font.getDims(title);
 
 		drawRoundedBox(playRenderer.bmp, 178, 20, 0, 7, wid);
@@ -1261,7 +1335,7 @@ void Gfx::selectLevel()
 		}
 
 		levSel.draw();
-		
+
 		if (!levSel.process())
 			break;
 
@@ -1269,7 +1343,7 @@ void Gfx::selectLevel()
 		|| testSDLKeyOnce(SDL_SCANCODE_KP_ENTER))
 		{
 			sfx.play(common, 27);
-			
+
 			auto* sel = levSel.enter();
 
 			if (sel)
@@ -1287,7 +1361,7 @@ void Gfx::selectLevel()
 				break;
 			}
 		}
-		
+
 		menuFlip();
 		process();
 	}
@@ -1304,7 +1378,7 @@ void Gfx::selectProfile(WormSettings& ws)
 		profileSel.setFolder(profileSel.rootNode);
 		profileSel.select(joinPath(getConfigNode().fullPath(), "Profiles"));
 	}
-	
+
 	do
 	{
 		playRenderer.bmp.copy(frozenScreen);
@@ -1334,12 +1408,12 @@ void Gfx::selectProfile(WormSettings& ws)
 				return;
 			}
 		}
-		
+
 		menuFlip();
 		process();
 	}
 	while(true);
-	
+
 	return;
 }
 
@@ -1389,7 +1463,7 @@ int Gfx::selectReplay()
 				controller.reset();
 
 				controller.reset(new ReplayController(common, sel->getFsNode().toSource()));
-				
+
 				return MainMenu::MaReplay;
 			}
 		}
@@ -1397,7 +1471,7 @@ int Gfx::selectReplay()
 		process();
 	}
 	while(true);
-	
+
 	return -1;
 }
 
@@ -1412,22 +1486,22 @@ void Gfx::selectOptions()
 
 		optionsSel.setFolder(optionsSel.rootNode);
 	}
-	
+
 	do
 	{
 		playRenderer.bmp.copy(frozenScreen);
-		
+
 		string title = "Select options:";
 		if (!optionsSel.currentNode->fullPath.empty())
 		{
 			title += ' ';
 			title += optionsSel.currentNode->fullPath;
 		}
-		
+
 		common->font.drawFramedText(playRenderer.bmp, title, 178, 20, 50);
 
 		optionsSel.draw();
-		
+
 		if (!optionsSel.process())
 			break;
 
@@ -1469,22 +1543,22 @@ std::unique_ptr<Common> Gfx::selectTc()
 			c->folder = false;
 		}
 	}
-	
+
 	do
 	{
 		playRenderer.bmp.copy(frozenScreen);
-		
+
 		string title = "Select TC:";
 		if (!tcSel.currentNode->fullPath.empty())
 		{
 			title += ' ';
 			title += tcSel.currentNode->fullPath;
 		}
-		
+
 		common->font.drawFramedText(playRenderer.bmp, title, 178, 20, 50);
 
 		tcSel.draw();
-		
+
 		if (!tcSel.process())
 			break;
 
@@ -1504,7 +1578,7 @@ std::unique_ptr<Common> Gfx::selectTc()
 		process();
 	}
 	while(true);
-	
+
 	return std::unique_ptr<Common>();
 }
 
@@ -1514,7 +1588,7 @@ struct WeaponMenu : Menu
 	: Menu(x, y)
 	{
 	}
-	
+
 	ItemBehavior* getItemBehavior(Common& common, MenuItem& item)
 	{
 		int index = common.weapOrder[item.id];
@@ -1526,31 +1600,31 @@ void Gfx::weaponOptions()
 {
 	Common& common = *this->common;
 	WeaponMenu weaponMenu(179, 28);
-			
+
 	weaponMenu.setHeight(14);
 	weaponMenu.valueOffsetX = 89;
-	
+
 	for(int i = 0; i < (int)common.weapons.size(); ++i)
 	{
 		int index = common.weapOrder[i];
 		weaponMenu.addItem(MenuItem(48, 7, common.weapons[index].name, i));
 	}
-	
+
 	weaponMenu.moveToFirstVisible();
 	weaponMenu.updateItems(common);
-	
+
 	while(true)
 	{
 		playRenderer.bmp.copy(frozenScreen);
-		
+
 		drawBasicMenu();
-		
+
 		drawRoundedBox(playRenderer.bmp, 179, 20, 0, 7, common.font.getDims(LS(Weapon)));
 		drawRoundedBox(playRenderer.bmp, 249, 20, 0, 7, common.font.getDims(LS(Availability)));
-		
+
 		common.font.drawText(playRenderer.bmp, LS(Weapon), 181, 21, 50);
 		common.font.drawText(playRenderer.bmp, LS(Availability), 251, 21, 50);
-		
+
 		weaponMenu.draw(common, playRenderer, false);
 
 		if(testSDLKeyOnce(SDL_SCANCODE_UP))
@@ -1573,20 +1647,20 @@ void Gfx::weaponOptions()
 		{
 			weaponMenu.onLeftRight(common, 1);
 		}
-		
+
 		if(settings->extensions)
 		{
 			if(testSDLKeyOnce(SDL_SCANCODE_PAGEUP))
 			{
 				sfx.play(common, 26);
-				
+
 				weaponMenu.movementPage(-1);
 			}
 
 			if(testSDLKeyOnce(SDL_SCANCODE_PAGEDOWN))
 			{
 				sfx.play(common, 25);
-				
+
 				weaponMenu.movementPage(1);
 			}
 		}
@@ -1599,16 +1673,16 @@ void Gfx::weaponOptions()
 		if(testSDLKeyOnce(SDL_SCANCODE_ESCAPE))
 		{
 			int count = 0;
-			
+
 			for(int i = 0; i < 40; ++i)
 			{
 				if(settings->weapTable[i] == 0)
 					++count;
 			}
-				
+
 			if(count > 0)
 				break; // Enough weapons available
-				
+
 			infoBox(LS(NoWeaps), 223, 68, false);
 		}
 	}
@@ -1617,28 +1691,28 @@ void Gfx::weaponOptions()
 void Gfx::infoBox(std::string const& text, int x, int y, bool clearScreen)
 {
 	static int const bgColor = 0;
-	
+
 	if(clearScreen)
 	{
 		playRenderer.pal = common->exepal;
 		fill(playRenderer.bmp, bgColor);
 	}
-	
+
 	int height;
 	int width = common->font.getDims(text, &height);
-	
+
 	int cx = x - width/2 - 2;
 	int cy = y - height/2 - 2;
-	
+
 	drawRoundedBox(playRenderer.bmp, cx, cy, 0, height+1, width+1);
 	common->font.drawText(playRenderer.bmp, text, cx+2, cy+2, 6);
-	
+
 	flip();
 	process();
-	
+
 	waitForKey();
 	clearKeys();
-	
+
 	if(clearScreen)
 		fill(playRenderer.bmp, bgColor);
 }
@@ -1646,27 +1720,27 @@ void Gfx::infoBox(std::string const& text, int x, int y, bool clearScreen)
 bool Gfx::inputString(std::string& dest, std::size_t maxLen, int x, int y, int (*filter)(int), std::string const& prefix, bool centered)
 {
 	std::string buffer = dest;
-	
+
 	while(true)
 	{
 		std::string str = prefix + buffer + '_';
-		
+
 		Font& font = common->font;
-		
+
 		int width = font.getDims(str);
-		
+
 		int adjust = centered ? width/2 : 0;
-		
+
 		int clrX = x - 10 - adjust;
-		
+
 		SDL_Event ev;
 
 		//int offset = clrX + y*320; // TODO: Unhardcode 320
-		
+
 		blitImageNoKeyColour(playRenderer.bmp, &frozenScreen.getPixel(clrX, y), clrX, y, clrX + 10 + width, 8, frozenScreen.pitch);
-		
+
 		drawRoundedBox(playRenderer.bmp, x - 2 - adjust, y, 0, 7, width);
-		
+
 		font.drawText(playRenderer.bmp, str, x - adjust, y + 1, 50);
 		flip();
 
@@ -1717,7 +1791,7 @@ bool Gfx::inputString(std::string& dest, std::size_t maxLen, int x, int y, int (
 				// complex IME input (like East Asian languages), we naively
 				// discard this event
 				break;
-			
+
 			default:
 				break;
         }
@@ -1732,7 +1806,7 @@ int filterDigits(int k)
 void Gfx::inputInteger(int& dest, int min, int max, std::size_t maxLen, int x, int y)
 {
 	std::string str(toString(dest));
-	
+
 	if(inputString(str, maxLen, x, y, filterDigits)
 	&& !str.empty())
 	{
@@ -1758,7 +1832,7 @@ void PlayerMenu::drawItemOverlay(Common& common, MenuItem& item, int x, int y, b
 		{
 			drawRoundedBox(gfx.playRenderer.bmp, x + 24, y, 0, 7, ws->rgb[rgbcol] - 1);
 		}
-		
+
 		fillRect(gfx.playRenderer.bmp, x + 25, y + 1, ws->rgb[rgbcol], 5, ws->color);
 	} // CED9
 }
@@ -1787,7 +1861,7 @@ ItemBehavior* PlayerMenu::getItemBehavior(Common& common, MenuItem& item)
 			b->scrollInterval = 4;
 			return b;
 		}
-			
+
 		case PlUp: // D2AB
 		case PlDown:
 		case PlLeft:
@@ -1796,26 +1870,30 @@ ItemBehavior* PlayerMenu::getItemBehavior(Common& common, MenuItem& item)
 		case PlChange:
 		case PlJump:
 			return new KeyBehavior(common, ws->controls[item.id - PlUp], ws->controlsEx[item.id - PlUp], gfx.settings->extensions);
-		
+
 		case PlDig: // Controls Extension
 			return new KeyBehavior(common, ws->controlsEx[item.id - PlUp], ws->controlsEx[item.id - PlUp], gfx.settings->extensions);
 
-			
+		case PlAimLeftRightAxis:
+			return new AxisBehavior(common, ws->controlsEx[PlAimLeftRightJoy - PlUp], ws->controlsEx[PlAimLeftRightAxis - PlUp]);
+		case PlAimUpDownAxis:
+			return new AxisBehavior(common, ws->controlsEx[PlAimUpDownJoy - PlUp], ws->controlsEx[PlAimUpDownAxis - PlUp]);
+
 		case PlController: // Controller
 			return new ArrayEnumBehavior(common, ws->controller, common.texts.controllers);
-		
+
 		case PlSaveProfile: // Save profile
 			return new ProfileSaveBehavior(common, *ws, false);
-			
+
 		case PlSaveProfileAs: // Save profile as
 			return new ProfileSaveBehavior(common, *ws, true);
-			
+
 		case PlLoadProfile:
 			return new ProfileLoadBehavior(common, *ws);
 
 		case PlLoadedProfile:
 			return new ProfileLoadedBehavior(common, *ws);
-			
+
 		default:
 			return Menu::getItemBehavior(common, item);
 	}
@@ -1824,10 +1902,10 @@ ItemBehavior* PlayerMenu::getItemBehavior(Common& common, MenuItem& item)
 void Gfx::playerSettings(int player)
 {
 	playerMenu.ws = settings->wormSettings[player];
-	
+
 	playerMenu.updateItems(*common);
 	playerMenu.moveToFirstVisible();
-	
+
 	curMenu = &playerMenu;
 	return;
 }
@@ -1836,18 +1914,18 @@ void Gfx::mainLoop()
 {
 restart:
 	controller.reset(new LocalController(common, settings));
-	
+
 	{
 		Level newLevel(*common);
 		newLevel.generateFromSettings(*common, *settings, rand);
 		controller->swapLevel(newLevel);
 	}
-	
+
 	controller->currentGame()->focus(this->playRenderer);
 	controller->currentGame()->focus(this->singleScreenRenderer);
 
 	// TODO: Unfocus game when necessary
-	
+
 	while(true)
 	{
 		playRenderer.clear();
@@ -1856,15 +1934,15 @@ restart:
 		singleScreenRenderer.clear();
 		controller->draw(this->singleScreenRenderer, true);
 
-		
+
 		int selection = menuLoop();
-		
+
 		if(selection == MainMenu::MaNewGame)
 		{
 			std::unique_ptr<Controller> newController(new LocalController(common, settings));
-			
+
 			Level* oldLevel = controller->currentLevel();
-			
+
 			if(oldLevel
 			&& !settings->regenerateLevel
 			&& settings->randomLevel == oldLevel->oldRandomLevel
@@ -1879,7 +1957,7 @@ restart:
 				newLevel.generateFromSettings(*common, *settings, rand);
 				newController->swapLevel(newLevel);
 			}
-			
+
 			controller = std::move(newController);
 		}
 		else if(selection == MainMenu::MaResumeGame)
@@ -1887,7 +1965,7 @@ restart:
 			if (controller->isReplay())
 			{
 				primaryRenderer = &singleScreenRenderer;
-			}			
+			}
 		}
 		else if(selection == MainMenu::MaQuit) // QUIT TO OS
 		{
@@ -1904,9 +1982,9 @@ restart:
 		{
 			goto restart;
 		}
-		
+
 		controller->focus();
-		
+
 		while(true)
 		{
 			if(!controller->process())
@@ -1926,7 +2004,7 @@ restart:
 		primaryRenderer = &playRenderer;
 
 		controller->unfocus();
-		
+
 		clearKeys();
 	}
 
@@ -1998,12 +2076,12 @@ void Gfx::drawSpectatorInfo()
 int upperCaseOnly(int k)
 {
 	k = std::toupper(k);
-	
+
 	if((k >= 'A' && k <= 'Z')
 	|| (k == 0x8f || k == 0x8e || k == 0x99) // � �and �
 	|| (k >= '0' && k <= '9'))
 		return k;
-		
+
 	return 0;
 }
 
@@ -2025,7 +2103,7 @@ int Gfx::menuLoop()
 	std::memset(singleScreenRenderer.pal.entries, 0, sizeof(singleScreenRenderer.pal.entries));
 	flip();
 	process();
-	
+
 	fillRect(playRenderer.bmp, 0, 151, 160, 7, 0);
 	common.font.drawText(playRenderer.bmp, LS(Copyright2), 2, 152, 19);
 
@@ -2043,11 +2121,11 @@ int Gfx::menuLoop()
 		mainMenu.itemFromId(MainMenu::MaNewGame)->string = "NEW GAME (F1)";
 		startItemId = MainMenu::MaNewGame;
 	}
-	
+
 	mainMenu.moveToFirstVisible();
 	settingsMenu.moveToFirstVisible();
 	settingsMenu.updateItems(common);
-	
+
 	playRenderer.fadeValue = 0;
 	singleScreenRenderer.fadeValue = 0;
 	curMenu = &mainMenu;
@@ -2098,7 +2176,7 @@ int Gfx::menuLoop()
 			if(curMenu == &mainMenu)
 			{
 				sfx.play(common, 27);
-				
+
 				int s = mainMenu.selectedId();
 				switch (s)
 				{
@@ -2189,7 +2267,7 @@ int Gfx::menuLoop()
 		if (testSDLKeyOnce(SDL_SCANCODE_F8))
 		{
 			uint32 s = 14;
-			
+
 			Rand r;
 			r.seed(s);
 
@@ -2321,14 +2399,14 @@ int Gfx::menuLoop()
 		if(testSDLKeyOnce(SDL_SCANCODE_PAGEUP))
 		{
 			sfx.play(common, 26);
-				
+
 			curMenu->movementPage(-1);
 		}
 
 		if(testSDLKeyOnce(SDL_SCANCODE_PAGEDOWN))
 		{
 			sfx.play(common, 25);
-				
+
 			curMenu->movementPage(1);
 		}
 
@@ -2342,8 +2420,6 @@ int Gfx::menuLoop()
 		menuFlip(true);
 		process();
 	}
-	
+
 	return selected;
 }
-
-

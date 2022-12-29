@@ -97,7 +97,6 @@ struct AxisBehavior : ItemBehavior
 		{
 			onUpdate(menu, item);
 		}
-		gfx.clearKeys();
 		return -1;
 	}
 
@@ -841,9 +840,11 @@ bool Gfx::waitForAxis(uint32_t& joystick, uint32_t& axis)
 
 		case SDL_JOYAXISMOTION:
 			if (ev.jaxis.value > JoyAxisThreshold || ev.jaxis.value < -JoyAxisThreshold)
+			{
 				joystick = ev.jaxis.which;
 				axis = ev.jaxis.axis;
 				return true;
+			}
 		}
 	}
 

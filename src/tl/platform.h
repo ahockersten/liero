@@ -60,6 +60,8 @@
 #  define TL_X86_64 1
 # elif defined(__i386__) || defined(_M_IX86) || defined(i386) || defined(i486) || defined(intel) || defined(x86) || defined(i86pc)
 #  define TL_X86 1
+# elif defined(__EMSCRIPTEN__)
+#  define TL_LITTLE_ENDIAN 1
 # else
 #  error "Unknown architecture, please add it"
 # endif

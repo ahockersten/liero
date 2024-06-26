@@ -152,7 +152,7 @@ struct filename_result
 	char const* name;
 };
 
-#if GVL_LINUX || __APPLE__
+#if GVL_LINUX || __APPLE__ || __EMSCRIPTEN__
 
 # define BOOST_HANDLE DIR *
 # define BOOST_INVALID_HANDLE_VALUE 0

@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <memory>
 #include <limits>
+#include <random>
 
 #include "gfx.hpp"
 #include "reader.hpp"
@@ -2201,9 +2202,15 @@ int Gfx::menuLoop()
 			{
 				nobjMap.push_back(i);
 			}
-
+#if __cplusplus > 201100L
+// random_shuffle is deprecated in C++ 14, but we still want to use it when
+// we can in order to replicate the old behavior (e.g. for replays etc)
+			std::random_device rd;
+			std::mt19937 g(rd());
+			std::shuffle(nobjMap.begin(), nobjMap.end(), g);
+#else
 			std::random_shuffle(nobjMap.begin(), nobjMap.end(), r);
-
+#endif
 			for (auto& w : common.weapons)
 			{
 				w.addSpeed = r(30) - 5;

@@ -85,3 +85,5 @@ Note that currently if one player has dualstick controls, then the second player
 ## Emscripten
 
 * Install from git: https://emscripten.org/docs/getting_started/downloads.html
+* Run: emcmake cmake
+* 

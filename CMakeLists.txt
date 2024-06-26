@@ -1,17 +1,25 @@
 cmake_minimum_required(VERSION 3.21)
 project(openliero)
 
-find_package(SDL2 REQUIRED)
-find_package(SDL2_Image REQUIRED)
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(USE_FLAGS "--use-port=sdl2 --use-port=sdl2_image:formats=png")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+    set(CMAKE_EXECUTABLE_SUFFIX .html)
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
+    set(CMAKE_CXX_FLAGS_DEBUG "-g")
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")
+    find_package(SDL2 REQUIRED)
+    find_package(SDL2_Image REQUIRED)
+endif()
+
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/ffmpeg)
 link_directories(${PROJECT_SOURCE_DIR}/ffmpeg/libavcodec ${PROJECT_SOURCE_DIR}/ffmpeg/libavformat ${PROJECT_SOURCE_DIR}/ffmpeg/libavutil ${PROJECT_SOURCE_DIR}/ffmpeg/libswresample ${PROJECT_SOURCE_DIR}/ffmpeg/libswscale ${PROJECT_SOURCE_DIR}/x264)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-s")
 
 set(SOURCES
     src/game/bobject.cpp
@@ -102,11 +110,16 @@ else(APPLE)
 endif(APPLE)
 
 add_executable(openliero WIN32 ${GAME_SOURCES} ${RESOURCE_FILES} pkg/win32_icon.rc)
-add_executable(tctool ${TC_TOOL_SOURCES})
-add_executable(videotool EXCLUDE_FROM_ALL ${VIDEO_TOOL_SOURCES})
-target_link_libraries(openliero SDL2::SDL2 SDL2_image::SDL2_image)
-target_link_libraries(tctool SDL2::SDL2)
-target_link_libraries(videotool SDL2::SDL2 avcodec avformat avutil dl pthread swresample swscale x264)
+
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    add_executable(tctool ${TC_TOOL_SOURCES})
+    add_executable(videotool EXCLUDE_FROM_ALL ${VIDEO_TOOL_SOURCES})
+
+    target_link_libraries(openliero SDL2::SDL2 SDL2_image::SDL2_image)
+    target_link_libraries(tctool SDL2::SDL2)
+    target_link_libraries(videotool SDL2::SDL2 avcodec avformat avutil dl pthread swresample swscale x264)
+endif()
+
 include_directories(src/game)
 
 if(APPLE)

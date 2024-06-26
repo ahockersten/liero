@@ -20,11 +20,11 @@ contains the following changes:
 - various other changes
 
 ## Dualstick controls
-Liero was built in a time before dualstick joysticks were invented (and when playing on keyboards was still the norm). 
-As a consequence, it has a control scheme that is old school. As an experiment, I tried adding dualstick controls for 
+Liero was built in a time before dualstick joysticks were invented (and when playing on keyboards was still the norm).
+As a consequence, it has a control scheme that is old school. As an experiment, I tried adding dualstick controls for
 modern joypads. Of course, being able to aim in any direction immediately makes this into a very different game.
 
-To use dualstick controls, go to the "options" menu and set "dualstick controls" to "on". Then, go into the player 
+To use dualstick controls, go to the "options" menu and set "dualstick controls" to "on". Then, go into the player
 setup menus and make sure to setup "Aim L/R" and "Aim U/D" appropriately.
 
 Note that currently if one player has dualstick controls, then the second player is forced to use dualstick controls as well.
@@ -81,3 +81,7 @@ Note that currently if one player has dualstick controls, then the second player
 * Run cmake:
 * $ cmake -DCMAKE_BUILD_TYPE=Release -G "Unix Makefiles"
 * Run "make"
+
+## Emscripten
+
+* Install from git: https://emscripten.org/docs/getting_started/downloads.html

@@ -1900,6 +1900,23 @@ void Gfx::playerSettings(int player)
 	return;
 }
 
+#ifdef __EMSCRIPTEN__
+void Gfx::mainLoopIteration(double time, void *userData)
+{
+#else
+void Gfx::mainLoopIteration()
+{
+#endif
+}
+
+// if in menu
+// run the menuloop() stuff until it sets some flag
+// if in game loop
+// run game stuff
+// if resetting?
+// do stuff?
+// 
+
 void Gfx::mainLoop()
 {
 restart:

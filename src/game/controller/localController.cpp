@@ -105,6 +105,7 @@ bool LocalController::onAxis(Joystick &js, uint32_t axis)
 	if (newAimAngle > 128) newAimAngle -= 128;
 	worm->direction = newAimAngle > 64 ? 1 : 0;
 	worm->aimingAngle = itof(newAimAngle);
+	return true;
 }
 
 void LocalController::onKey(int key, bool keyState)

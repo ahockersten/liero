@@ -26,6 +26,7 @@ CMakeScripts/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
+openliero.xcodeproj
 *.xcodeproj/
 
 # created by running Liero

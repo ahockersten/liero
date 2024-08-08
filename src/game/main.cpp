@@ -82,6 +82,7 @@ try
 #endif
 
 	bool tcSet = false;
+	bool fullscreen = false;
 
 	std::string tcName;
 	std::string configPath; // Default to current dir
@@ -98,6 +99,13 @@ try
 					++i;
 					configPath = argv[i];
 				}
+				if (std::strcmp(argv[i] + 2, "fullscreen") == 0)
+				{
+					fullscreen = true;
+				}
+				break;
+			case 'f':
+				fullscreen = true;
 				break;
 			}
 		}
@@ -139,6 +147,8 @@ try
 			gfx.saveSettings(configNode / "liero.cfg");
 		}
 	}
+	if (fullscreen)
+		gfx.fullscreen = true;
 
 	gfx.setVideoMode();
 	sfx.init();

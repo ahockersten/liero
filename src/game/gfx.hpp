@@ -69,7 +69,7 @@ struct PlayerMenu : Menu
 
 	virtual ItemBehavior* getItemBehavior(Common& common, MenuItem& item);
 
-	gvl::shared_ptr<WormSettings> ws;
+	std::shared_ptr<WormSettings> ws;
 };
 
 struct SettingsMenu : Menu
@@ -254,7 +254,7 @@ struct Gfx
 	Menu* curMenu;
 	std::string prevSelectedReplayPath;
 	FsNode settingsNode; // Currently loaded settings file. TODO: This is only used for display. We could just remember the name.
-	gvl::shared_ptr<Settings> settings;
+	std::shared_ptr<Settings> settings;
 
 	bool dosKeys[177];
 	// the window to render into
@@ -288,7 +288,7 @@ struct Gfx
 	int windowW, windowH;
 	int prevMag; // Previous magnification used for drawing
 	gvl::rect lastUpdateRect; // Last region that was updated when flipping
-	gvl::shared_ptr<Common> common;
+	std::shared_ptr<Common> common;
 	std::unique_ptr<Controller> controller;
 
 	std::vector<Joystick> joysticks;

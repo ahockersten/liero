@@ -186,6 +186,21 @@ struct in_archive
 		return fobj(v, gvl::new_creator<T>());
 	}
 
+	template<typename T, typename Creator>
+	in_archive& fobj(std::shared_ptr<T>& v, Creator creator)
+	{
+		T* p;
+		fobj(p, creator);
+		v.reset(p);
+		return *this;
+	}
+
+	template<typename T>
+	in_archive& fobj(std::shared_ptr<T>& v)
+	{
+		return fobj(v, gvl::new_creator<T>());
+	}
+
 	in_archive& check()
 	{
 		uint32_t v = gvl::read_uint32(reader);
@@ -326,6 +341,19 @@ struct out_archive
 		return obj(v, 0);
 	}
 
+	template<typename T, typename Creator>
+	out_archive& obj(std::shared_ptr<T>& v, Creator creator)
+	{
+		T* p = v.get();
+		return obj(p);
+	}
+
+	template<typename T>
+	out_archive& obj(std::shared_ptr<T>& v)
+	{
+		return obj(v, 0);
+	}
+
 	template<typename Ref, typename RefCreator>
 	out_archive& objref(Ref& v, RefCreator refCreator)
 	{
@@ -356,6 +384,19 @@ struct out_archive
 
 	template<typename T>
 	out_archive& fobj(gvl::shared_ptr<T>& v)
+	{
+		return fobj(v, 0);
+	}
+
+	template<typename T, typename Creator>
+	out_archive& fobj(std::shared_ptr<T>& v, Creator creator)
+	{
+		T* p = v.get();
+		return fobj(p);
+	}
+
+	template<typename T>
+	out_archive& fobj(std::shared_ptr<T>& v)
 	{
 		return fobj(v, 0);
 	}

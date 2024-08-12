@@ -52,7 +52,7 @@ struct Holdazone
 
 struct Game
 {
-	Game(gvl::shared_ptr<Common> common, gvl::shared_ptr<Settings> settings, gvl::shared_ptr<SoundPlayer> soundPlayer);
+	Game(std::shared_ptr<Common> common, std::shared_ptr<Settings> settings, std::shared_ptr<SoundPlayer> soundPlayer);
 	~Game();
 
 	void onKey(uint32_t key, bool state);
@@ -96,10 +96,10 @@ struct Game
 		return worms[idx];
 	}
 
-	gvl::shared_ptr<Common> common;
-	gvl::shared_ptr<SoundPlayer> soundPlayer;
-	gvl::shared_ptr<Settings> settings;
-	gvl::shared_ptr<StatsRecorder> statsRecorder;
+	std::shared_ptr<Common> common;
+	std::shared_ptr<SoundPlayer> soundPlayer;
+	std::shared_ptr<Settings> settings;
+	std::shared_ptr<StatsRecorder> statsRecorder;
 
 	Level level;
 

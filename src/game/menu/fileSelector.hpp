@@ -12,7 +12,7 @@
 using std::string;
 using std::vector;
 using std::pair;
-using gvl::shared_ptr;
+using std::shared_ptr;
 
 typedef bool (*FileFilter)(string const& name, string const& ext);
 

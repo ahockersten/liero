@@ -379,10 +379,10 @@ struct Worm : gvl::shared
 	int fireCone;                //How much is left of the firecone
 	int leaveShellTimer;         //Time until next shell drop
 
-	gvl::shared_ptr<WormSettings> settings; // !CLONING
+	std::shared_ptr<WormSettings> settings; // !CLONING
 	int index; // 0 or 1
 
-	gvl::shared_ptr<WormAI> ai;
+	std::shared_ptr<WormAI> ai;
 
 	int reacts[4];
 	WormWeapon weapons[5];

@@ -1,3 +1,8 @@
+# 2024-08-15 NOTE!
+Most of the changes (except dualstick support) in this fork have been merged
+into the main Liero repository. This fork is now obsolete and will not be
+updated. Please use the main Liero repository instead.
+
 # Liero (orbmit edition)
 
 This is the fork of Liero made by and for the community of Liero players in

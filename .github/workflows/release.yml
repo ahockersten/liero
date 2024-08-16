@@ -1,0 +1,30 @@
+name: Release
+on:
+  push:
+   tags:
+     - 'v[0-9]+.[0-9]+'
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ubuntu-build
+          path: ubuntu-build
+      - uses: actions/download-artifact@v4
+        with:
+            name: windows-build
+            path: windows-build
+      - run: chmod +x ubuntu-build/openliero ubuntu-build/tctool
+      - run: curl https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip -O windows-build/sdl2-win-x64.zip
+      - run: cd ubuntu-build && tar cfJ liero-ubuntu-x64-${{ github.ref }}.tar.xz * && cd ..
+      - run: cd windows-build && unzip sdl2-win-x64.zip && zip -r liero-windows-x64-${{ github.ref }}.zip . && cd ..
+      - run: mv ubuntu-build/liero-ubuntu-x64-${{ github.ref }}.tar.xz .
+      - run: mv windows-build/liero-windows-x64-${{ github.ref }}.zip .
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref }}
+          files: |
+            liero-ubuntu-x64-${{ github.ref }}.tar.xz
+            liero-windows-x64-${{ github.ref }}.zip

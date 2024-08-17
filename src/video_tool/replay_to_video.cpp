@@ -77,7 +77,6 @@ void replayToVideo(
 	nativeFramerate.num = 1;
 	nativeFramerate.den = 70;
 
-	av_register_all();
 	video_recorder vidrec;
 	vidrec_init(&vidrec, replayVideoName.c_str(), w, h, framerate);
 
@@ -120,7 +119,8 @@ void replayToVideo(
 
 			while (samplesLeft > audioCodecFrames)
 			{
-				vidrec_write_audio_frame(&vidrec, audioSamples, audioCodecFrames);
+				vidrec.audio_st->tmp_pkt = 
+				write_audio_frame(vidrec.oc, vidrec.audio_st);
 				audioSamples += audioCodecFrames;
 				samplesLeft -= audioCodecFrames;
 			}
@@ -134,8 +134,8 @@ void replayToVideo(
 				Color realPal[256];
 				renderer.pal.activate(realPal);
 				PalIdx* src = renderer.bmp.pixels;
-				std::size_t destPitch = vidrec.tmp_picture->linesize[0];
-				uint8_t* dest = vidrec.tmp_picture->data[0] + offsetY * destPitch + offsetX * 4;
+				std::size_t destPitch = vidrec.video_st->tmp_frame->linesize[0];
+				uint8_t* dest = vidrec.video_st->tmp_frame->data[0] + offsetY * destPitch + offsetX * 4;
 				std::size_t srcPitch = renderer.bmp.pitch;
 
 				uint32_t pal32[256];
@@ -143,7 +143,7 @@ void replayToVideo(
 
 				scaleDraw(src, renderer.renderResX, renderer.renderResY, srcPitch, dest, destPitch, mag, pal32);
 
-				vidrec_write_video_frame(&vidrec, vidrec.tmp_picture);
+				vidrec_write_video_frame(&vidrec, vidrec.video_st->tmp_frame);
 			}
 
 			// Move rest to the beginning of the buffer

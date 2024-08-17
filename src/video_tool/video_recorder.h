@@ -1,28 +1,41 @@
 #ifndef VIDEOTEST_H
 #define VIDEOTEST_H
 
-#include "tl/platform.h"
-
+#include <libavcodec/avcodec.h>
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
 #define inline TL_INLINE
 
+// a wrapper around a single output AVStream
+typedef struct OutputStream {
+    AVStream *st;
+    AVCodecContext *enc;
+
+    /* pts of the next frame that will be generated */
+    int64_t next_pts;
+    int samples_count;
+
+    AVFrame *frame;
+    AVFrame *tmp_frame;
+
+    AVPacket *tmp_pkt;
+
+    float t, tincr, tincr2;
+
+    struct SwsContext *sws_ctx;
+    struct SwrContext *swr_ctx;
+} OutputStream;
+
 typedef struct video_recorder {
-	AVFrame *picture, *tmp_picture;
-	uint8_t *video_outbuf;
-	int frame_count, video_outbuf_size;
-	AVOutputFormat *fmt;
 	AVFormatContext *oc;
-	AVStream *audio_st, *video_st;
-    SwrContext *swr;
-	struct SwsContext *img_convert_ctx;
-    int64_t pts;
+	OutputStream *video_st;
+	OutputStream *audio_st;
 } video_recorder;
 
-int  vidrec_init(video_recorder* self, char const* filename, int width, int height, AVRational framerate);
-int  vidrec_write_audio_frame(video_recorder* self, int16_t* samples, int audio_input_frame_size);
-int  vidrec_write_video_frame(video_recorder* self, AVFrame* pic);
-int  vidrec_finalize(video_recorder* self);
+int vidrec_init(video_recorder* self, char const* filename, int width, int height, AVRational framerate);
+int write_audio_frame(AVFormatContext *oc, OutputStream *ost);
+int write_video_frame(AVFormatContext *oc, OutputStream *ost);
+int close_stream(video_recorder* self);
 
 #endif // VIDEOTEST_H

@@ -1,3 +1,16 @@
+NOTE!
+==================
+THIS FORK IS OUTDATED! PLEASE REFER TO https://github.com/openliero/openliero INSTEAD!!!
+
+^^^^^^
+||||||
+||||||
+||||||
+||||||
+||||||
+||||||
+||||||
+
 
 How to build (Windows)
 ======================
